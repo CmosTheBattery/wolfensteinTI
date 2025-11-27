@@ -11,7 +11,7 @@
 #include <graphics.h>
 #include <games.h>
 
-#include <icons.h>
+#include <src/icons.h>
 
 #define SCREEN_WIDTH 96
 #define SCREEN_HEIGHT 64

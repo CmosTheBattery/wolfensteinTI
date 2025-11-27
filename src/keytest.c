@@ -7,7 +7,7 @@
 #include <graphics.h>
 #include <games.h>
 
-#include <icons.h>
+#include <src/icons.h>
 
 
 void clgblack()
@@ -79,46 +79,23 @@ static uint8_t getCSC(void) __naked {
     __endasm;
 }
 
-void drawChar(uint8_t x, uint8_t y, uint8_t idx)
-{
-	char* selected;
-	switch(idx)
-	{
-		case 1:
-			selected=font_A;
-			break;
-		case 2:
-			selected=font_B;
-			break;
-		case 3:
-			selected=font_C;
-			break;
-		case 4:
-			selected=font_D;
-			break;
-		case 5:
-			selected=font_E;
-			break;
-		case 6:
-			selected=font_F;
-			break;
-		case 7:
-			selected=font_G;
-			break;
-		case 8:
-			selected=font_H;
-			break;
-		case 9:
-			selected=font_I;
-			break;
-		case 10:
-			selected=font_J;
-			break;
-		default:
-			selected=font_blank;
-			break;
-	}
-	putsprite(SPR_OR,x,y,selected);
+// From ti83plus.inc: addresses of penCol and penRow
+#define PEN_COL_ADDR 0x86D7  // (pencol) in TI-83+ / TI-84+ OS :contentReference[oaicite:0]{index=0}  
+#define PEN_ROW_ADDR 0x86D8  // (penrow) :contentReference[oaicite:1]{index=1}  
+
+void set_pen_xy(uint8_t x, uint8_t y) {
+    *(volatile uint8_t*)PEN_COL_ADDR = x;   // penCol
+    *(volatile uint8_t*)PEN_ROW_ADDR = y;   // penRow
+}
+
+void vputmap(char c) {
+    __asm
+        ld   hl, 2
+        add  hl, sp
+        ld   a, (hl)          ; A = c
+        rst  0x28
+        defw  0x455E           ; VPutMap BCALL
+    __endasm;
 }
 
 int main()
@@ -132,7 +109,8 @@ int main()
 	*/
 	for(int i=0;i<11;i++)
 	{
-		drawChar(i*4, 5, i);
+		set_pen_xy(i*4, 5);
+		vputmap(i+65);
 	}
 	getk();
 	clgblack();
