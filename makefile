@@ -11,6 +11,5 @@ main:
 keytest:
 	zcc +ti83p -o $(BINDIR)keytest -create-app $(SOURCEDIR)keytest.c
 
-
 clean:
 	rm -rf $(BINDIR)

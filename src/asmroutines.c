@@ -53,7 +53,8 @@ void clgblack()
 	*/
 }
 
-static uint8_t getCSC(void) __naked {
+static uint8_t getCSC(void) __naked
+{
 	__asm
 		rst  0x28 ; bcall dispatcher
 		defw 0x4018 ; _GetCSC
@@ -68,17 +69,31 @@ static uint8_t getCSC(void) __naked {
 #define PEN_ROW_ADDR 0x86D8
 
 //KINDA HACKY : seperate cursor and vputmap
-void set_pen_xy(uint8_t x, uint8_t y) {
-    *(volatile uint8_t*)PEN_COL_ADDR = x;   // penCol
-    *(volatile uint8_t*)PEN_ROW_ADDR = y;   // penRow
+void set_pen_xy(uint8_t x, uint8_t y)
+{
+	*(volatile uint8_t*)PEN_COL_ADDR = x;   // penCol
+	*(volatile uint8_t*)PEN_ROW_ADDR = y;   // penRow
 }
 
-void VPutMap(char c){
-    __asm
-        ld   hl, 2
-        add  hl, sp
-        ld   a, (hl)          ; A = c
-        rst  0x28
-        defw  0x455E           ; VPutMap BCALL
-    __endasm;
+void VPutMap(char c)
+{
+	__asm
+		ld   hl, 2
+		add  hl, sp
+		ld   a, (hl) ; A = c
+		rst  0x28
+		defw 0x455E ; VPutMap BCALL
+	__endasm
+}
+
+void changeLCDz(uint8_t s)
+{
+	__asm
+		push bc
+		ld b, $40 ;s is in register A
+		add a, b
+		out ($10), a
+		pop bc
+		call $000B
+	__endasm
 }

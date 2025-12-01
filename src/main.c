@@ -12,6 +12,7 @@
 #include <games.h>
 
 #include <src/icons.h>
+#include <src/asmroutines.c>
 
 #define SCREEN_WIDTH 96
 #define SCREEN_HEIGHT 64
@@ -23,110 +24,13 @@
 #define KEY_QUIT 9
 #define KEY_SHOOT 69
 
-int flag=1;
-bool exita=true;
-int tick=0;
+uint8_t px,py,dx,dy;
 
-int px,py;
-
-int temps[6];
+uint8_t temps[6];
 
 char *hudthing;
 
-int lerp(a,b,t){return (1-t)*a+t*b;}
-
-void draw_player()
-{
-	plot(px,py);
-}
-
-void clgblack()
-{
-	//HACK : yeahh
-	putsprite(SPR_OR,0,0,spr_black);
-	//inline asm always gets the job done Oᴗ-
-	//and can soft lock the calculator O_O
-	/*
-	TODO : this shit doesn't work
-	__asm
-		push af
-		push bc
-		ld a,$01		   ; 8-bit mode
-		out ($10),a
-		call $000B
-	
-		ld a,$40		   ; Set Z
-		out ($10),a
-		call $000B
-
-		ld a,$20		   ; Set Column
-		out ($10),a
-		call $000B
-
-		ld a,$80		   ; Set Row
-		out ($10),a
-		call $000B
-
-		ld c,$0B		   ; Y loop counter (rows)
-	loopy:
-		ld a,c
-		add a,$20		; Set column for this row
-		out ($10),a
-		call $000B
-
-		ld a,$80		   ; Row start
-		out ($10),a
-		call $000B
-
-		ld b,$3F		   ; X loop counter (columns)
-		ld a,$FF		   ; B L A C K
-	loopx:
-		out ($11),a
-		call $000B
-		djnz loopx
-
-		dec c
-		jp p,loopy
-		
-		pop bc
-		pop af
-		ret
-	__endasm
-	*/
-}
-
-static uint8_t getCSC(void) __naked {
-	__asm
-		rst  0x28 ; bcall dispatcher
-		defw 0x4018 ; _GetCSC
-		ld   l,a ; return value -> HL
-		ld   h,0
-		ret
-	__endasm;
-}
-
-void handle_input()
-{
-	//TODO : find out the keycodes of the buttons
-	switch(getCSC())
-	{
-		case KEY_SHOOT:
-			exita=false;
-			break;
-		case KEY_UP:
-			py--;
-			break;
-		case KEY_DOWN:
-			py++;
-			break;
-		case KEY_RIGHT:
-			px++;
-			break;
-		case KEY_LEFT:
-			px--;
-			break;
-	}
-}
+uint8_t lerp(a,b,t){return (1-t)*a+t*b;}
 
 void draw_hud()
 {
@@ -140,8 +44,18 @@ void draw_hud()
 main()
 {
 	clgblack();
+	csleep(50);
 	putsprite(SPR_AND,9,20,spr_logo);
-	temps[0]=false;
+	for(uint8_t i=0;i<10;i++)
+	{
+		changeLCDz(i);
+		csleep(10);
+	}
+	changeLCDz(0);
+	csleep(100);
+	putsprite(spr_or,76,31,spr_ti);
+	putsprite(spr_mask,76,31,spr_timask);
+	temps[0]=true;
 	csleep(100);
 	while(temps[0])
 	{
@@ -150,32 +64,42 @@ main()
 			case KEY_QUIT:
 				exit(0);
 				break;
-			default:
-				temps[0]=true;
+			case KEY_SHOOT:
+				temps[0]=false;
 				break;
 		}
+	}
+
+	csleep(250);
+	temps[0]=true;
+	clg();
+	while (true)
+	{
+		//TODO : find out the keycodes of the buttons
+		switch(getCSC())
+		{
+			case KEY_SHOOT:
+				exit(0);
+				break;
+			case KEY_UP:
+				dy--;
+				break;
+			case KEY_DOWN:
+				dy++;
+				break;
+			case KEY_RIGHT:
+				dx++;
+				break;
+			case KEY_LEFT:
+				dx--;
+				break;
+		}
+		py=py+dy;
+		px=px+dx;
+		unplot(px+dx,py+dy);
+		dx,dy=0;
+		plot(px,py);
 	}
 	
-	/*
-	while(exita)
-	{
-		tick++;
-		switch(flag)
-		{
-			case 1:
-				clgblack();
-				putsprite(SPR_AND,9,20,spr_logo);
-				if(getk()==11){exit=false;}
-				if(getk()==9){flag=2;}
-				break;
-			case 2:
-				clg();
-				draw_hud();
-				draw_player();
-				handle_input();
-				break;
-		}
-	}
-	*/
 	return 0;
 }
