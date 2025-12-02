@@ -21,8 +21,8 @@
 #define KEY_DOWN 1
 #define KEY_LEFT 2
 #define KEY_RIGHT 3
-#define KEY_QUIT 9
-#define KEY_SHOOT 69
+#define KEY_SHOOT 54
+#define KEY_CLR 56
 
 uint8_t px,py,dx,dy;
 
@@ -46,17 +46,20 @@ main()
 	clgblack();
 	csleep(50);
 	putsprite(SPR_AND,9,20,spr_logo);
+	/*
 	for(uint8_t i=0;i<10;i++)
 	{
 		changeLCDz(i);
 		csleep(10);
 	}
-	changeLCDz(0);
-	csleep(100);
+	*/
+	//changeLCDz(0);
+	csleep(50);
 	putsprite(spr_or,76,31,spr_ti);
 	putsprite(spr_mask,76,31,spr_timask);
 	temps[0]=true;
 	csleep(100);
+	/*
 	while(temps[0])
 	{
 		switch(getCSC())
@@ -71,16 +74,14 @@ main()
 	}
 
 	csleep(250);
+	*/
 	temps[0]=true;
 	clg();
-	while (true)
+	while(temps[0])
 	{
-		//TODO : find out the keycodes of the buttons
-		switch(getCSC())
+		uint8_t key = getCSC();
+		switch(key)
 		{
-			case KEY_SHOOT:
-				exit(0);
-				break;
 			case KEY_UP:
 				dy--;
 				break;
@@ -96,9 +97,15 @@ main()
 		}
 		py=py+dy;
 		px=px+dx;
-		unplot(px+dx,py+dy);
-		dx,dy=0;
-		plot(px,py);
+		c_unplot(px-dx,py-dy);
+		c_plot(px,py);
+		dx=0;
+		dy=0;
+		
+		if(key==KEY_SHOOT)
+		{
+			break;
+		}
 	}
 	
 	return 0;

@@ -2,53 +2,54 @@ void clgblack()
 {
 	//HACK : yeahh
 	putsprite(SPR_OR,0,0,spr_black);
-	//inline asm always gets the job done Oᴗ-
-	//and can soft lock the calculator O_O
+	//funny thing this used to write directly to lcd ram
+	//and that caused problems
+
+	//TODO : this shit doesn't work
 	/*
-	TODO : this shit doesn't work
 	__asm
-		push af
-		push bc
-		ld a,$01		   ; 8-bit mode
-		out ($10),a
-		call $000B
-	
-		ld a,$40		   ; Set Z
-		out ($10),a
-		call $000B
-
-		ld a,$20		   ; Set Column
-		out ($10),a
-		call $000B
-
-		ld a,$80		   ; Set Row
-		out ($10),a
-		call $000B
-
-		ld c,$0B		   ; Y loop counter (rows)
+		ld hl, $9340       ; Address of plotSScreen
+		ld c,$03		   ; Y loop counter (rows)
 	loopy:
 		ld a,c
-		add a,$20		; Set column for this row
-		out ($10),a
-		call $000B
-
-		ld a,$80		   ; Row start
-		out ($10),a
-		call $000B
-
-		ld b,$3F		   ; X loop counter (columns)
+		ld b,$FF		   ; X loop counter (columns)
 		ld a,$FF		   ; B L A C K
 	loopx:
-		out ($11),a
-		call $000B
+		ld (hl), a
+		inc hl
 		djnz loopx
-
 		dec c
 		jp p,loopy
-		
-		pop bc
-		pop af
-		ret
+	;CTRL+C CTRL+V
+	fastCopy:
+		di
+		ld a,$80
+		out ($10),a
+		ld hl, $9340-12-(-(12*64)+1)
+		ld a,$20
+		ld c,a
+		inc hl
+		dec hl
+	fastCopyAgain:
+		ld b,64
+		inc c
+		ld de,-(12*64)+1
+		out ($10),a
+		add hl,de
+		ld de,10
+	fastCopyLoop:
+		add hl,de
+		inc hl
+		inc hl
+		inc de
+		ld a,(hl)
+		out ($11),a
+		dec de
+		djnz fastCopyLoop
+		ld a,c
+		cp $2B+1
+		jr nz,fastCopyAgain
+		ret	   
 	__endasm
 	*/
 }
@@ -97,3 +98,4 @@ void changeLCDz(uint8_t s)
 		call $000B
 	__endasm
 }
+
